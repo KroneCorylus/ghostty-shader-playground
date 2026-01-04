@@ -53,6 +53,7 @@ class ShaderPlayer {
       this.onChangeShader,
       this.onPip,
       this.onTexture,
+      this.onSpeedChange,
     );
     this.wrapper.append(this.canvas, this.textureCanvas, this.ui.element);
     const resizeObserver = new ResizeObserver(() => {
@@ -185,6 +186,12 @@ class ShaderPlayer {
       await global.video.requestPictureInPicture();
     } catch (err) {
       console.error("Failed to enter PiP:", err);
+    }
+  };
+
+  onSpeedChange = (speed) => {
+    if (this.renderer) {
+      this.renderer.setTimeScale(speed);
     }
   };
 

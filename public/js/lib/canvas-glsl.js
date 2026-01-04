@@ -13,6 +13,9 @@ class CanvasGLSL {
     this.attributes = {};
     this.animationId = null;
     this.startTime = null;
+    this.lastFrameTime = null;
+    this.accumulatedTime = 0;
+    this.timeScale = 1.0;
     this.isRendering = false;
 
     this.textures = new Set();
@@ -419,11 +422,15 @@ class CanvasGLSL {
     this.gl.useProgram(this.program);
 
     // Set time uniform
-    if (this.startTime === null) {
-      this.startTime = performance.now();
+    if (this.lastFrameTime === null) {
+      this.lastFrameTime = performance.now();
     }
-    const currentTime = (performance.now() - this.startTime) / 1000.0;
-    this.setUniform("iTime", currentTime);
+    const now = performance.now();
+    const dt = (now - this.lastFrameTime) / 1000.0;
+    this.lastFrameTime = now;
+    
+    this.accumulatedTime += dt * this.timeScale;
+    this.setUniform("iTime", this.accumulatedTime);
 
     // Setup vertex attributes
     this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.vertexBuffer);
@@ -447,6 +454,7 @@ class CanvasGLSL {
 
     if (this.program) {
       this.isRendering = true;
+      this.lastFrameTime = performance.now();
 
       const animate = () => {
         if (!this.isRendering) {
@@ -463,11 +471,15 @@ class CanvasGLSL {
 
   stop() {
     this.isRendering = false;
-    // this.startTime = null;
+    this.lastFrameTime = null;
     if (this.animationId) {
       cancelAnimationFrame(this.animationId);
       this.animationId = null;
     }
+  }
+
+  setTimeScale(scale) {
+    this.timeScale = scale;
   }
 
   cleanupShaderResources() {

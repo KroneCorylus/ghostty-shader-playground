@@ -6,12 +6,14 @@ class PlayerUI {
   onShaderChange;
   onPip;
   onTexture;
+  onSpeedChange;
   messages;
-  constructor(playerID, onRemove, onShaderChange, onPip, onTexture) {
+  constructor(playerID, onRemove, onShaderChange, onPip, onTexture, onSpeedChange) {
     this.onRemove = onRemove;
     this.onShaderChange = onShaderChange;
     this.onPip = onPip;
     this.onTexture = onTexture;
+    this.onSpeedChange = onSpeedChange;
     const playerSettings = global.config.players.find((p) => p.id == playerID);
 
     this.element = this._createUILayer();
@@ -19,13 +21,15 @@ class PlayerUI {
     let toolbox = this._createToolbox();
 
     let selectMenu = this._createShaderListSelect(playerSettings?.shader);
+    let speedMenu = this._createSpeedControl();
     let removeButtonEl = this._createRemoveButton(onRemove);
     let pipButtonEl = this._createPiPButton();
     let cb = this._createShowBackgroundCheckbox(playerSettings?.showTexture);
 
-    toolbox.append(selectMenu, removeButtonEl, pipButtonEl, cb);
+    toolbox.append(selectMenu, speedMenu, removeButtonEl, pipButtonEl, cb);
 
     selectMenu.dispatchEvent(new Event("change"));
+    speedMenu.dispatchEvent(new Event("change"));
     cb.firstElementChild.dispatchEvent(new Event("change"));
 
     let messagesArea = this._createMessagesArea();
@@ -128,6 +132,31 @@ class PlayerUI {
     selectMenu.value = fileName ?? "debug_cursor_static.glsl";
     return selectMenu;
   }
+
+  _createSpeedControl() {
+    const selectMenu = document.createElement("select");
+    const speeds = [
+      { label: "1x", value: 1.0 },
+      { label: "0.5x", value: 0.5 },
+      { label: "0.25x", value: 0.25 },
+    ];
+    
+    speeds.forEach((speed) => {
+      const option = document.createElement("option");
+      option.value = speed.value;
+      option.textContent = speed.label;
+      selectMenu.appendChild(option);
+    });
+
+    selectMenu.addEventListener("change", (event) => {
+      if (this.onSpeedChange) {
+        this.onSpeedChange(parseFloat(event.target.value));
+      }
+    });
+    
+    return selectMenu;
+  }
+
   _createPiPButton() {
     if (!global.video.requestPictureInPicture) {
       return "";
