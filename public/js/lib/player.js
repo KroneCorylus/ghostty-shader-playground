@@ -57,10 +57,10 @@ class ShaderPlayer {
     );
     this.wrapper.append(this.canvas, this.textureCanvas, this.ui.element);
     const resizeObserver = new ResizeObserver(() => {
-      this.canvas.width = this.wrapper.clientWidth;
-      this.canvas.height = this.wrapper.clientHeight;
-      this.textureCanvas.width = this.wrapper.clientWidth;
-      this.textureCanvas.height = this.wrapper.clientHeight;
+      const rect = this.wrapper.getBoundingClientRect();
+      const dpr = window.devicePixelRatio || 1;
+      this.textureCanvas.width = rect.width * dpr;
+      this.textureCanvas.height = rect.height * dpr;
       this._drawBackround(global.config.backgroundColor);
     });
     resizeObserver.observe(this.wrapper);
@@ -71,9 +71,12 @@ class ShaderPlayer {
 
     this.clickListener = this.canvas.addEventListener("click", (event) => {
       const rect = this.canvas.getBoundingClientRect();
-      const x = event.clientX - rect.left;
-      const y = this.canvas.height - (event.clientY - rect.top);
-      console.log(x, y);
+
+      const scaleX = this.canvas.width / rect.width;
+      const scaleY = this.canvas.height / rect.height;
+
+      const x = (event.clientX - rect.left) * scaleX;
+      const y = (rect.height - (event.clientY - rect.top)) * scaleY;
 
       global.bus.emit({ type: "click", data: { x, y } });
     });
@@ -148,11 +151,22 @@ class ShaderPlayer {
     const ctx = this.textureCanvas.getContext("2d");
     ctx.fillStyle = color;
     ctx.fillRect(0, 0, this.textureCanvas.width, this.textureCanvas.height);
-    if (this.img1) {
-      ctx.save();
-      ctx.scale(1, -1);
-      ctx.drawImage(this.img1, 0, -this.textureCanvas.height);
-      ctx.restore();
+    if (this.img1 && this.img1.complete && this.img1.naturalWidth !== 0) {
+      const imgW = this.img1.naturalWidth;
+      const imgH = this.img1.naturalHeight;
+      
+      const wrapperW = this.wrapper.clientWidth;
+      const wrapperH = this.wrapper.clientHeight;
+
+      const scale = Math.max(wrapperW / imgW, wrapperH / imgH);
+      
+      const w = imgW * scale;
+      const h = imgH * scale;
+      
+      const x = 0;
+      const y = 0;
+
+      ctx.drawImage(this.img1, 0, 0, w, h);
     }
     if (this.renderer) {
       let texture = this.renderer.createTexture(this.textureCanvas);

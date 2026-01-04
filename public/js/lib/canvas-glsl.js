@@ -381,6 +381,7 @@ class CanvasGLSL {
     const texture = this.gl.createTexture();
     this.textures.add(texture); // Track texture for cleanup
     this.gl.bindTexture(this.gl.TEXTURE_2D, texture);
+    this.gl.pixelStorei(this.gl.UNPACK_FLIP_Y_WEBGL, true);
     this.gl.texImage2D(
       this.gl.TEXTURE_2D,
       0,
