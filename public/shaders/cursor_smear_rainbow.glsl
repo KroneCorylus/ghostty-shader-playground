@@ -96,6 +96,7 @@ const float DURATION = 0.5;
 void mainImage(out vec4 fragColor, in vec2 fragCoord) {
     // Calculate animation progress with easing
     float baseProgress = clamp((iTime - iTimeCursorChange) / DURATION, 0.0, 1.0);
+    baseProgress = mix(1.0, baseProgress, float(iFocus)); // when unfocused iTime stops, force trail done
 
     vec2 uv = fragCoord / iResolution.xy;
     vec4 background = texture(iChannel0, uv);
