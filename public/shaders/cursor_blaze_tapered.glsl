@@ -101,6 +101,7 @@ void mainImage(out vec4 fragColor, in vec2 fragCoord)
     float sdfTrail = getSdfParallelogram(vu, v0, v1, v2, v3);
 
     float progress = clamp((iTime - iTimeCursorChange) / DURATION, 0.0, 1.0);
+    progress = mix(1.0, progress, float(iFocus)); // when unfocused iTime stops, force trail done
     float easedProgress = ease(progress);
     // Distance between cursors determine the total length of the parallelogram;
     float lineLength = distance(centerCC, centerCP);
